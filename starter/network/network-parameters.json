@@ -1,0 +1,26 @@
+[
+    {
+        "ParameterKey": "VPCName",
+        "ParameterValue": "udagram-vpc-662552793293"
+    },
+    {
+        "ParameterKey": "VPCCIDR",
+        "ParameterValue": "10.0.0.0/16"
+    },
+    {
+        "ParameterKey": "Public1",
+        "ParameterValue": "10.0.1.0/24"
+    },
+    {
+        "ParameterKey": "Public2",
+        "ParameterValue": "10.0.2.0/24"
+    },
+    {
+        "ParameterKey": "Private1",
+        "ParameterValue": "10.0.3.0/24"
+    },
+    {
+        "ParameterKey": "Private2",
+        "ParameterValue": "10.0.4.0/24"
+    }
+]

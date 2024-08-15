@@ -1,0 +1,110 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  License: Apache-2.0
+Description: "AWS CloudFormation Template for deploying Udagram index.html on an S3 bucket "
+Parameters:
+  timeout:
+    Type: Number
+    Description: Lambda Function Timeout
+    Default: 6
+
+Resources:
+  MyLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:*
+                Resource: "*"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+  LambdaLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      CompatibleArchitectures:
+        - x86_64
+      CompatibleRuntimes:
+        - python3.10
+      Content:
+        S3Bucket: 
+          Fn::ImportValue: 
+              !Sub web-app-s3-bucket-${AWS::AccountId}
+        S3Key: 'python.zip'
+      Description: Lambda layer 
+      LayerName: pythonLibLambdaLayer
+  deploytoS3LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: deploy-github-to-s3-lambda-function
+      Role: !GetAtt MyLambdaRole.Arn
+      Handler: index.lambda_handler
+      Runtime: python3.10
+      Layers: 
+        - !Ref LambdaLayer
+      Environment:
+        Variables:
+          s3BucketName:
+            Fn::ImportValue: 
+              !Sub web-app-s3-bucket-${AWS::AccountId}
+          s3ObjectKey:  'index.html'
+
+      Code:
+        ZipFile: |
+          import boto3
+          import os
+          import urllib3
+          def lambda_handler(event, context):
+              s3_bucket_name = os.environ['s3BucketName']
+              s3_object_key = os.environ['s3ObjectKey']
+              
+              # Initialize S3 client
+              s3 = boto3.client('s3')
+              try:
+                  http = urllib3.PoolManager()
+                  r = http.request('GET', 'https://raw.githubusercontent.com/tomlui2010/udacity/main/index.html')
+                  s3.put_object(Bucket=s3_bucket_name, Key=s3_object_key, Body=r.data)
+                  return {
+                      'statusCode': 200,
+                      'body': 'File is uploaded to S3 bucket successfully!'
+                  }
+              except Exception as e:
+                return {
+                    'statusCode': 500,
+                    'body': f'Error is : {str(e)}'                    
+                }
+      Timeout: !Ref 'timeout'
+
+  LambdaFunctionUrl:
+    Type: AWS::Lambda::Url
+    Properties:
+      AuthType: NONE  
+      TargetFunctionArn: !GetAtt deploytoS3LambdaFunction.Arn
+
+  LambdaFunctionUrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref deploytoS3LambdaFunction
+      Action: lambda:InvokeFunctionUrl
+      Principal: '*'
+      FunctionUrlAuthType: NONE
+
+Outputs:
+  widgeturl:
+    Value: !Join ['',['https://s3.amazonaws.com/web-app-s3-bucket-${AWS::AccountId}/index.html']]
+
+  FunctionUrl:
+    Description: "URL for the Lambda function"
+    Value: !GetAtt LambdaFunctionUrl.FunctionUrl

@@ -1,0 +1,45 @@
+---
+AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  License: Apache-2.0
+Description: "AWS CloudFormation Template for deploying Udagram index.html on an S3 bucket "
+Parameters:
+  udagramIndexHtml:
+    Type: String
+    Description: Udagram's index html
+    Default: https://raw.githubusercontent.com/tomlui2010/udacity/main/index.html
+Resources:  
+  WebAppS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub web-app-s3-bucket-${AWS::AccountId}
+      PublicAccessBlockConfiguration: 
+        BlockPublicAcls: true
+        BlockPublicPolicy: false
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  WebAppS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebAppS3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:          
+          - Sid: AllowS3Actions
+            Effect: Allow
+            Principal: "*"
+            Action: 
+              - s3:*
+            Resource: !Join
+            - ""
+            - - !GetAtt WebAppS3Bucket.Arn
+              - "/*"
+
+Outputs:
+  s3bucketname:
+    Value: 
+      Ref: WebAppS3Bucket
+    Export:
+      Name:
+        !Sub web-app-s3-bucket-${AWS::AccountId}

@@ -1,0 +1,1 @@
+aws cloudformation delete-stack --stackname $1

@@ -1,0 +1,3 @@
+cfnresponse  # Latest version compatible with Python 3.10
+requests==2.31.0       # Latest version compatible with Python 3.10
+boto3==1.28.0          # `boto3` is recommended over `boto`

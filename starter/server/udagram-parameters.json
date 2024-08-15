@@ -1,0 +1,14 @@
+[
+    {
+        "ParameterKey": "KeyName",
+        "ParameterValue": "VocareumKey2"
+    },
+    {
+        "ParameterKey": "InstanceType",
+        "ParameterValue": "t3.small"
+    },
+    {
+        "ParameterKey": "LatestAmiId",
+        "ParameterValue": "ami-0aff18ec83b712f05"
+    }
+]
